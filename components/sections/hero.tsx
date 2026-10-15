@@ -2,13 +2,31 @@
 
 import { motion } from "framer-motion"
 import { ArrowDown, FileText, Mail } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { profile } from "@/lib/content"
 
 export function HeroSection() {
   return (
-    <section id="top" className="relative min-h-screen flex items-center justify-center px-6">
+    <section id="top" className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-16">
       <div className="max-w-4xl mx-auto text-center">
+        {profile.photo && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mx-auto mb-8 h-28 w-28 md:h-32 md:w-32 overflow-hidden rounded-full ring-4 ring-primary/20 shadow-xl"
+          >
+            <Image
+              src={profile.photo}
+              alt={profile.name}
+              width={256}
+              height={256}
+              priority
+              className="h-full w-full object-cover"
+            />
+          </motion.div>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -32,11 +50,11 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex flex-wrap items-center justify-center gap-2 text-lg md:text-xl text-muted-foreground mb-8"
+          className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-1 sm:gap-2 text-lg md:text-xl text-muted-foreground mb-8"
         >
           {profile.focusAreas.map((area, i) => (
             <span key={area} className="flex items-center gap-2">
-              {i > 0 && <span className="text-primary" aria-hidden="true">•</span>}
+              {i > 0 && <span className="hidden sm:inline text-primary" aria-hidden="true">•</span>}
               {area}
             </span>
           ))}

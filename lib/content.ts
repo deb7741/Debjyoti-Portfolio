@@ -18,6 +18,8 @@ export const profile = {
     "Building the mixed-signal circuits that let sensing and computation happen in the analog domain — at the edge, at ultra-low power.",
   description:
     "Research Associate at IISc Bangalore designing analog and mixed-signal integrated circuits — from subthreshold op-amps, VGAs and SAR ADCs to current-mode Ising machines and silicon neurons — in 45–180 nm CMOS.",
+  /** Portrait in /public; set to null to hide. */
+  photo: "/headshot.webp",
   /** Shown on the hero badge; set to null to hide. */
   status: "Seeking PhD positions — analog/mixed-signal & non-von-Neumann computing",
   education: {
@@ -525,5 +527,5 @@ export function getSiteUrl(): string {
   if (explicit) return explicit.replace(/\/$/, "")
   const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL
   if (vercel) return `https://${vercel}`
-  return "http://localhost:3000"
+  return "https://debjyotiportfolio.vercel.app"
 }
