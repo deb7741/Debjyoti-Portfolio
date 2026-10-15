@@ -222,6 +222,15 @@ export function ResearchTerminal() {
   }, [lines])
 
   useEffect(() => {
+    const open = () => {
+      setIsOpen(true)
+      setIsMinimized(false)
+    }
+    window.addEventListener("open-terminal", open)
+    return () => window.removeEventListener("open-terminal", open)
+  }, [])
+
+  useEffect(() => {
     if (isOpen && !isMinimized && inputRef.current) {
       inputRef.current.focus()
     }
@@ -350,19 +359,13 @@ export function ResearchTerminal() {
       }
 
       case "open": {
-        const sectionMap: Record<string, string> = Object.fromEntries(
-          sections.map((sec) => [sec.id, `#${sec.id}`]),
-        )
-        sectionMap.honors = "#honours"
-        sectionMap.map = "#research-map"
-        sectionMap.top = "#top"
+        const sectionMap: Record<string, string> = Object.fromEntries(sections.map((sec) => [sec.id, sec.id]))
+        Object.assign(sectionMap, { about: "overview", top: "overview", honors: "honours", map: "research-map" })
         const target = sectionMap[arg.toLowerCase()]
         if (target) {
           addOutput(`Opening ${arg}...`)
           setIsMinimized(true)
-          setTimeout(() => {
-            document.querySelector(target)?.scrollIntoView({ behavior: "smooth" })
-          }, 150)
+          window.location.hash = target
         } else {
           addOutput(`open: unknown section '${arg}'`, "error")
           addOutput(`Available: ${sections.map((sec) => sec.id).join(", ")}`)

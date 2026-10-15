@@ -20,8 +20,7 @@ export const profile = {
     "Research Associate at IISc Bangalore designing analog and mixed-signal integrated circuits — from subthreshold op-amps, VGAs and SAR ADCs to current-mode Ising machines and silicon neurons — in 45–180 nm CMOS.",
   /** Portrait in /public; set to null to hide. */
   photo: "/headshot.webp",
-  /** Shown on the hero badge; set to null to hide. */
-  status: "Seeking PhD positions — analog/mixed-signal & non-von-Neumann computing",
+  location: "Bangalore, India",
   education: {
     degree: "B.Tech, Electronics & Communication Engineering",
     institution: "Tezpur University",
@@ -508,19 +507,83 @@ export const philosophy = {
 }
 
 /* ------------------------------------------------------------------ */
-/* Navigation — the ids here must match each section's `id` attribute  */
+/* News — newest first, shown on the Overview tab                      */
+/* ------------------------------------------------------------------ */
+
+export const news: { date: string; text: string }[] = [
+  { date: "Aug 2026", text: "Started work on device-aware spiking neural networks — 180 nm silicon neurons with hardware-aware retraining." },
+  { date: "2026", text: "Paper on power/EM key recovery from TLS 1.3 under review at IEEE Transactions on Smart Grid." },
+  { date: "2026", text: "Subthreshold op-amp paper published at IEEE GCON 2026." },
+  { date: "2026", text: "Submitted IMPEDE (AsianHOST 2026) and an energy-efficient ultrasound receiver (DATE 2027)." },
+  { date: "Feb 2026", text: "Joined the Circuits & Security Research Lab, IISc Bangalore, as a Research Associate." },
+  { date: "Jul 2025", text: "Joined Raman Research Institute (SARAS) to build a 16K-point FFT spectrometer on RFSoC." },
+  { date: "Jun 2025", text: "Graduated from Tezpur University — Best B.Tech Thesis, Rank 4 in ECE." },
+]
+
+/* ------------------------------------------------------------------ */
+/* References                                                          */
+/* ------------------------------------------------------------------ */
+
+export interface Reference {
+  name: string
+  designation: string
+  department: string
+  institution: string
+  relation: string
+  email: string
+  /** Official page the email was taken from */
+  profile: string
+}
+
+export const references: Reference[] = [
+  {
+    name: "Dr. Debayan Das",
+    designation: "Faculty, Circuits & Security Research Lab",
+    department: "Dept. of Electronic Systems Engineering (DESE)",
+    institution: "Indian Institute of Science, Bangalore",
+    relation: "Current supervisor — Research Associate (2026 – present)",
+    email: "debayandas@iisc.ac.in",
+    profile: "https://labs.dese.iisc.ac.in/csrl/contact/",
+  },
+  {
+    name: "Dr. Saurabh Singh",
+    designation: "Associate Professor",
+    department: "Astronomy & Astrophysics",
+    institution: "Raman Research Institute, Bangalore",
+    relation: "Supervisor — Research Assistant, SARAS project (2025 – 2026)",
+    email: "saurabhs@rri.res.in",
+    profile: "https://www.rri.res.in/people/faculty/saurabh-singh",
+  },
+  {
+    name: "Prof. Ratul Kumar Baruah",
+    designation: "Professor",
+    department: "Dept. of Electronics & Communication Engineering",
+    institution: "Tezpur University, Assam",
+    relation: "B.Tech thesis supervisor and co-author (DevIC 2025)",
+    email: "ratulkr@tezu.ernet.in",
+    profile: "https://www.tezu.ernet.in/delect/people.html",
+  },
+]
+
+/* ------------------------------------------------------------------ */
+/* Tabs — order of the top navigation                                  */
 /* ------------------------------------------------------------------ */
 
 export const sections = [
-  { id: "about", label: "About" },
+  { id: "overview", label: "Overview" },
   { id: "publications", label: "Publications" },
   { id: "experience", label: "Experience" },
-  { id: "research-map", label: "Research Map" },
   { id: "projects", label: "Projects" },
+  { id: "research-map", label: "Research Map" },
   { id: "skills", label: "Skills" },
   { id: "honours", label: "Honours" },
+  { id: "references", label: "References" },
   { id: "contact", label: "Contact" },
 ] as const
+
+export type SectionId = (typeof sections)[number]["id"]
+
+export const lastUpdated = "October 2026"
 
 export function getSiteUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL

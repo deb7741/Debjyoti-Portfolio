@@ -41,24 +41,24 @@ export function SkillsSection() {
   const [activeCategory, setActiveCategory] = useState(0)
 
   return (
-    <section id="skills" className="py-24 md:py-32 px-6 scroll-mt-16" ref={ref}>
-      <div className="max-w-4xl mx-auto">
+    <section ref={ref}>
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="mb-8 border-b border-border pb-6"
         >
-          <h2 className="text-sm tracking-[0.3em] text-primary uppercase mb-4">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
             Technical Skills
           </h2>
-          <p className="font-serif text-3xl md:text-4xl font-semibold text-balance">
+          <p className="font-serif text-3xl md:text-[2.5rem] leading-tight font-semibold text-balance">
             Tools & Expertise
           </p>
         </motion.div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
+        <div className="flex flex-wrap gap-2 mb-8">
           {skillCategories.map((category, index) => (
             <SkillCategory
               key={category.name}
@@ -98,10 +98,10 @@ export function SkillsSection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-16 pt-10 border-t border-border"
         >
-          <h3 className="text-center text-sm text-muted-foreground mb-6">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-4">
             Relevant Coursework
           </h3>
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap gap-2">
             {coursework.map((course) => (
               <span
                 key={course}

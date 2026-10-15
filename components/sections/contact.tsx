@@ -27,30 +27,32 @@ export function ContactSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   return (
-    <section id="contact" className="py-24 md:py-32 px-6 scroll-mt-16" ref={ref}>
-      <div className="max-w-2xl mx-auto text-center">
+    <section ref={ref}>
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
+          className="mb-8 border-b border-border pb-6"
         >
-          <h2 className="text-sm tracking-[0.3em] text-primary uppercase mb-4">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
             Contact
           </h2>
-          <p className="font-serif text-3xl md:text-4xl font-semibold mb-4 text-balance">
+          <p className="font-serif text-3xl md:text-[2.5rem] leading-tight font-semibold text-balance">
             Let&apos;s Connect
           </p>
-          <p className="text-muted-foreground leading-relaxed mb-10">
+          <p className="mt-3 max-w-2xl text-muted-foreground leading-relaxed">
             Interested in collaboration, research discussions, or have questions 
             about my work? I&apos;d be happy to hear from you.
           </p>
         </motion.div>
 
+        <div className="grid gap-8 lg:grid-cols-5">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="space-y-4"
+          className="space-y-3 lg:col-span-2"
         >
           {contactLinks.map((link, index) => (
             <motion.a
@@ -60,16 +62,16 @@ export function ContactSection() {
               rel={link.href.startsWith("mailto") ? undefined : "noopener noreferrer"}
               initial={{ opacity: 0, x: -20 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+              transition={{ duration: 0.4, delay: 0.2 + index * 0.08 }}
               className="group flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-all"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <link.icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <div className="text-left">
+                <div className="min-w-0 text-left">
                   <p className="text-sm text-muted-foreground">{link.label}</p>
-                  <p className="font-medium text-card-foreground">{link.value}</p>
+                  <p className="truncate font-medium text-card-foreground">{link.value}</p>
                 </div>
               </div>
               <ExternalLink
@@ -83,11 +85,12 @@ export function ContactSection() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12"
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="lg:col-span-3"
         >
           <MessageForm />
         </motion.div>
+        </div>
       </div>
     </section>
   )
@@ -118,7 +121,7 @@ function MessageForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-4 rounded-lg border border-border bg-card p-6 text-left"
+      className="space-y-4 rounded-xl border border-border bg-background/60 p-6 text-left"
       aria-labelledby="message-form-title"
     >
       <h3 id="message-form-title" className="font-semibold text-card-foreground">

@@ -18,8 +18,9 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px",
-          background: "linear-gradient(135deg, #14111f 0%, #1f1833 60%, #2a1f4a 100%)",
-          color: "#f2f0fa",
+          background: "#f8f5ee",
+          color: "#1c2340",
+          borderLeft: "24px solid #b4692f",
           fontFamily: "serif",
         }}
       >
@@ -28,14 +29,14 @@ export default function OpengraphImage() {
             fontSize: 26,
             letterSpacing: 8,
             textTransform: "uppercase",
-            color: "#a78bfa",
+            color: "#b4692f",
             fontFamily: "sans-serif",
           }}
         >
           {`${profile.role} • ${profile.affiliationShort}`}
         </div>
         <div style={{ fontSize: 96, fontWeight: 600, marginTop: 24 }}>{profile.name}</div>
-        <div style={{ fontSize: 36, marginTop: 24, color: "#c4bcd9", fontFamily: "sans-serif" }}>
+        <div style={{ fontSize: 36, marginTop: 24, color: "#4a5068", fontFamily: "sans-serif" }}>
           {profile.focusAreas.join("  •  ")}
         </div>
       </div>

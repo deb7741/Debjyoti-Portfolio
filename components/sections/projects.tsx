@@ -244,21 +244,21 @@ export function ProjectsSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   return (
-    <section id="projects" className="py-24 md:py-32 px-6 bg-card/50 scroll-mt-16" ref={ref}>
-      <div className="max-w-5xl mx-auto">
+    <section ref={ref}>
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-8 border-b border-border pb-6"
         >
-          <h2 className="text-sm tracking-[0.3em] text-primary uppercase mb-4">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
             Projects
           </h2>
-          <p className="font-serif text-3xl md:text-4xl font-semibold text-balance">
+          <p className="font-serif text-3xl md:text-[2.5rem] leading-tight font-semibold text-balance">
             Technical Case Studies
           </p>
-          <p className="text-muted-foreground max-w-2xl mx-auto mt-4 leading-relaxed">
+          <p className="text-muted-foreground max-w-2xl mt-3 leading-relaxed">
             Deep dives into selected projects showcasing problem formulation,
             design rationale, and verified results.
           </p>

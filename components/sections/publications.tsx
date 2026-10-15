@@ -2,8 +2,47 @@
 
 import { motion, useInView, AnimatePresence } from "framer-motion"
 import { useId, useRef, useState } from "react"
-import { ExternalLink, ChevronDown } from "lucide-react"
+import { ExternalLink, ChevronDown, Quote, Check } from "lucide-react"
 import { isPeerReviewed, publications, type Publication } from "@/lib/content"
+
+/** BibTeX entry built from the publication data (authors as listed on the site). */
+function toBibtex(p: Publication) {
+  const year = p.year.match(/\d{4}/)?.[0] ?? p.year
+  const firstWord = p.title.split(/\W+/).find((w) => w.length > 3)?.toLowerCase() ?? "paper"
+  const isJournal = /transactions|journal/i.test(p.venue)
+  const authors = p.authors.replace(/,\s*/g, " and ").replace(/\s+et al\.?/, " and others")
+  const fields = [
+    `  title = {${p.title}}`,
+    `  author = {${authors}}`,
+    `  ${isJournal ? "journal" : "booktitle"} = {${p.venue}}`,
+    `  year = {${year}}`,
+    p.doi ? `  doi = {${p.doi}}` : null,
+  ].filter(Boolean)
+  return `@${isJournal ? "article" : "inproceedings"}{chowbey${year}${firstWord},\n${fields.join(",\n")}\n}`
+}
+
+function CiteButton({ publication }: { publication: Publication }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(toBibtex(publication))
+          setCopied(true)
+          setTimeout(() => setCopied(false), 1600)
+        } catch {
+          /* clipboard unavailable */
+        }
+      }}
+      className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      title="Copy BibTeX"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" /> : <Quote className="h-3.5 w-3.5" aria-hidden="true" />}
+      {copied ? "BibTeX copied" : "Cite"}
+    </button>
+  )
+}
 
 function PublicationCard({ publication, index }: { publication: Publication; index: number }) {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -69,8 +108,9 @@ function PublicationCard({ publication, index }: { publication: Publication; ind
           )}
         </div>
 
-        {publication.abstract && (
         <div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          {publication.abstract && (
           <button
             type="button"
             onClick={() => setIsExpanded((v) => !v)}
@@ -84,9 +124,12 @@ function PublicationCard({ publication, index }: { publication: Publication; ind
             />
             {isExpanded ? "Hide" : "Show"} Abstract
           </button>
+          )}
+          <CiteButton publication={publication} />
+          </div>
 
           <AnimatePresence initial={false}>
-            {isExpanded && (
+            {isExpanded && publication.abstract && (
               <motion.div
                 id={abstractId}
                 initial={{ opacity: 0, height: 0 }}
@@ -102,7 +145,6 @@ function PublicationCard({ publication, index }: { publication: Publication; ind
             )}
           </AnimatePresence>
         </div>
-        )}
       </div>
     </motion.article>
   )
@@ -113,16 +155,16 @@ export function PublicationsSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   return (
-    <section id="publications" className="py-24 md:py-32 px-6 bg-card/50 scroll-mt-16" ref={ref}>
-      <div className="max-w-4xl mx-auto">
+    <section ref={ref}>
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-8 border-b border-border pb-6"
         >
-          <h2 className="text-sm tracking-[0.3em] text-primary uppercase mb-4">Publications</h2>
-          <p className="font-serif text-3xl md:text-4xl font-semibold text-balance">Research Papers</p>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-accent">Publications</h2>
+          <p className="font-serif text-3xl md:text-[2.5rem] leading-tight font-semibold text-balance">Research Papers</p>
         </motion.div>
 
         {[

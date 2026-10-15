@@ -290,19 +290,19 @@ export function ResearchGraph() {
   }, [selectedNode])
 
   return (
-    <section id="research-map" className="py-24 md:py-32 px-6 scroll-mt-16" ref={ref}>
-      <div className="max-w-6xl mx-auto">
+    <section ref={ref}>
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="mb-8 border-b border-border pb-6"
         >
-          <h2 className="text-sm tracking-[0.3em] text-primary uppercase mb-4">Research Map</h2>
-          <p className="font-serif text-3xl md:text-4xl font-semibold mb-4 text-balance">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-accent">Research Map</h2>
+          <p className="font-serif text-3xl md:text-[2.5rem] leading-tight font-semibold text-balance">
             Knowledge Graph
           </p>
-          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground max-w-2xl mt-3 leading-relaxed">
             An interactive visualization of research areas and their interconnections.
             Hover over nodes to explore relationships.
           </p>
