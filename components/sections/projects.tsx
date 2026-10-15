@@ -2,11 +2,11 @@
 
 import { useId, useState, useRef } from "react"
 import { motion, useInView, AnimatePresence } from "framer-motion"
-import { Cpu, Camera, Award, ChevronDown, Layers } from "lucide-react"
+import { Cpu, Camera, Brain, Award, ChevronDown, Layers } from "lucide-react"
 import { ImageGallery, ImageGalleryPlaceholder } from "@/components/image-gallery"
 import { projects, type Project, type ProjectIcon } from "@/lib/content"
 
-const projectIcons: Record<ProjectIcon, typeof Cpu> = { cpu: Cpu, camera: Camera }
+const projectIcons: Record<ProjectIcon, typeof Cpu> = { cpu: Cpu, camera: Camera, brain: Brain }
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const Icon = projectIcons[project.icon]
@@ -39,7 +39,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               <p className="text-xs text-primary font-medium uppercase tracking-wider">
                 {project.category}
               </p>
-              {project.highlight && <Award className="h-3.5 w-3.5 text-primary" aria-hidden="true" />}
+              {project.award && <Award className="h-3.5 w-3.5 text-primary" aria-label="Award" />}
             </div>
             <h3 className="font-semibold text-lg text-card-foreground">
               {project.title}
@@ -51,6 +51,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         </div>
 
         {/* Tab Switcher */}
+        {project.deepDive && (
         <div className="flex gap-2 mb-4 border-b border-border" role="tablist" aria-label={`${project.title} views`}>
           <button
             type="button"
@@ -92,6 +93,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             )}
           </button>
         </div>
+        )}
 
         {/* Content */}
         <AnimatePresence mode="wait">
@@ -145,15 +147,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               className="space-y-4"
             >
               {/* Collapsible Deep Dive Sections */}
-              {[
-                { title: "Problem Statement", content: project.deepDive.problemStatement },
-                { title: "Design Rationale", content: project.deepDive.designRationale },
-                { title: "Tradeoffs", content: project.deepDive.tradeoffs },
-                { title: "Verification", content: project.deepDive.verification },
-                { title: "Key Results", content: project.deepDive.keyResults },
-                { title: "Lessons Learned", content: project.deepDive.lessonsLearned },
-                { title: "Future Work", content: project.deepDive.futureWork },
-              ].map((section, idx) => (
+              {(project.deepDive ?? []).map((section, idx) => (
                 <DeepDiveSection
                   key={section.title}
                   title={section.title}

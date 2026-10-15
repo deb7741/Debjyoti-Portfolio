@@ -34,7 +34,12 @@ function ExperienceCard({ experience, index }: { experience: Experience; index: 
 
         <p className="text-sm text-muted-foreground">
           {experience.lab}
-          {experience.supervisor && <span> • Supervisor: {experience.supervisor}</span>}
+          {experience.supervisor && (
+            <span>
+              {" "}
+              • {experience.supervisorLabel ?? "Supervisor"}: {experience.supervisor}
+            </span>
+          )}
         </p>
 
         <div className="flex items-center gap-1 text-sm text-muted-foreground">

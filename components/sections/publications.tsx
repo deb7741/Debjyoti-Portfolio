@@ -3,7 +3,7 @@
 import { motion, useInView, AnimatePresence } from "framer-motion"
 import { useId, useRef, useState } from "react"
 import { ExternalLink, ChevronDown } from "lucide-react"
-import { publications, publicationsNote, type Publication } from "@/lib/content"
+import { isPeerReviewed, publications, type Publication } from "@/lib/content"
 
 function PublicationCard({ publication, index }: { publication: Publication; index: number }) {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -23,7 +23,7 @@ function PublicationCard({ publication, index }: { publication: Publication; ind
             <h3 className="font-medium text-foreground group-hover:text-primary transition-colors leading-snug">
               {publication.title}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">{publication.authors.join(", ")}</p>
+            <p className="text-sm text-muted-foreground mt-1">{publication.authors}</p>
           </div>
           <span
             className={`shrink-0 text-xs px-2 py-1 rounded-md ${
@@ -39,9 +39,19 @@ function PublicationCard({ publication, index }: { publication: Publication; ind
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="font-medium">{publication.venue}</span>
           <span aria-hidden="true">•</span>
-          <span>{publication.location}</span>
-          <span aria-hidden="true">•</span>
+          {publication.location && (
+            <>
+              <span>{publication.location}</span>
+              <span aria-hidden="true">•</span>
+            </>
+          )}
           <span>{publication.year}</span>
+          {publication.note && (
+            <>
+              <span aria-hidden="true">•</span>
+              <span className="font-mono text-xs">{publication.note}</span>
+            </>
+          )}
           {publication.doi && (
             <>
               <span aria-hidden="true">•</span>
@@ -59,6 +69,7 @@ function PublicationCard({ publication, index }: { publication: Publication; ind
           )}
         </div>
 
+        {publication.abstract && (
         <div>
           <button
             type="button"
@@ -91,6 +102,7 @@ function PublicationCard({ publication, index }: { publication: Publication; ind
             )}
           </AnimatePresence>
         </div>
+        )}
       </div>
     </motion.article>
   )
@@ -113,22 +125,23 @@ export function PublicationsSection() {
           <p className="font-serif text-3xl md:text-4xl font-semibold text-balance">Research Papers</p>
         </motion.div>
 
-        <div className="space-y-6">
-          {publications.map((publication, index) => (
-            <PublicationCard key={publication.id} publication={publication} index={index} />
+        {[
+          { title: "Peer-Reviewed", items: publications.filter(isPeerReviewed) },
+          { title: "Under Review / Submitted", items: publications.filter((p) => !isPeerReviewed(p)) },
+        ]
+          .filter((group) => group.items.length > 0)
+          .map((group) => (
+            <div key={group.title} className="mb-12 last:mb-0">
+              <h3 className="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                {group.title}
+              </h3>
+              <div className="space-y-6">
+                {group.items.map((publication, index) => (
+                  <PublicationCard key={publication.id} publication={publication} index={index} />
+                ))}
+              </div>
+            </div>
           ))}
-        </div>
-
-        {publicationsNote && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-10 text-center text-sm text-muted-foreground"
-          >
-            {publicationsNote}
-          </motion.p>
-        )}
       </div>
     </section>
   )

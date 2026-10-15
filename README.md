@@ -15,6 +15,7 @@ Built with Next.js 16 (App Router), React 19, Tailwind CSS v4 and Framer Motion.
 | A project | append to `projects` |
 | Project images | put files in `public/projects/<project-id>/` and list them in that project's `images` array — the gallery and lightbox appear automatically |
 | An award | append to `honours` |
+| The "Seeking PhD positions" badge | edit or set `profile.status` to `null` |
 | A skill | add to the right group in `skillCategories` |
 
 The research-map graph (`components/sections/research-graph.tsx`) has its own node list because it needs x/y positions.

@@ -11,7 +11,7 @@ import {
   profile,
   projects,
   publications,
-  publicationsNote,
+  researchStatement,
   sections,
   skillCategories,
 } from "@/lib/content"
@@ -42,6 +42,8 @@ ${profile.role} @ ${profile.affiliationShort}
 ${profile.headline}.
 Focus: ${profile.focusAreas.join(" • ")}
 
+${researchStatement}
+
 Education: ${profile.education.degree}
            ${profile.education.institution} — ${profile.education.detail}
 
@@ -55,22 +57,19 @@ ${bullets(philosophy.principles.map((p) => `${p.label}: ${p.description}`))}
     ),
   }),
   publications: dir(
-    Object.fromEntries([
-      ...publications.map((pub) => [
+    Object.fromEntries(
+      publications.map((pub) => [
         `${pub.id}.txt`,
         file(
           `${heading(`${pub.venue} — ${pub.status}`)}
 Title:   ${pub.title}
-Authors: ${pub.authors.join(", ")}
-Venue:   ${pub.venue}, ${pub.location} (${pub.year})${pub.doi ? `\nDOI:     ${pub.doi}` : ""}
-
-Abstract: ${pub.abstract}
+Authors: ${pub.authors}
+Venue:   ${pub.venue}${pub.location ? `, ${pub.location}` : ""} (${pub.year})${pub.doi ? `\nDOI:     ${pub.doi}` : ""}${pub.note ? `\nID:      ${pub.note}` : ""}${pub.abstract ? `\n\nAbstract: ${pub.abstract}` : ""}
 
 Type 'open publications' to jump to this section.`,
         ),
       ]),
-      ...(publicationsNote ? [["in-preparation.txt", file(publicationsNote)]] : []),
-    ]),
+    ),
   ),
   experience: dir(
     Object.fromEntries(
@@ -80,7 +79,7 @@ Type 'open publications' to jump to this section.`,
           `${heading(exp.organization)}
 Role:   ${exp.title}
 Period: ${exp.period}
-Lab:    ${exp.lab}${exp.supervisor ? `\nSupervisor: ${exp.supervisor}` : ""}
+Lab:    ${exp.lab}${exp.supervisor ? `\n${exp.supervisorLabel ?? "Supervisor"}: ${exp.supervisor}` : ""}
 Where:  ${exp.location}
 
 ${exp.description}
@@ -102,33 +101,19 @@ Tools: ${pr.tools}
 
 Problem:  ${pr.overview.problem}
 
-Approach: ${pr.overview.approach}
-
-Files: overview.txt  results.txt  design.txt  lessons.txt`,
+Approach: ${pr.overview.approach}`,
           ),
           "results.txt": file(
             `${heading("Key Results")}
-${pr.overview.results.map((r) => `${r.label.padEnd(14)}| ${r.value}`).join("\n")}
-
-${pr.deepDive.keyResults}`,
+${pr.overview.results.map((r) => `${r.label.padEnd(16)}| ${r.value}`).join("\n")}`,
           ),
-          "design.txt": file(
-            `${heading("Design Rationale")}
-${pr.deepDive.designRationale}
-
-${heading("Tradeoffs")}
-${pr.deepDive.tradeoffs}
-
-${heading("Verification")}
-${pr.deepDive.verification}`,
-          ),
-          "lessons.txt": file(
-            `${heading("Lessons Learned")}
-${pr.deepDive.lessonsLearned}
-
-${heading("Future Work")}
-${pr.deepDive.futureWork}`,
-          ),
+          ...(pr.deepDive
+            ? {
+                "deep-dive.txt": file(
+                  pr.deepDive.map((sec) => `${heading(sec.title)}\n${sec.content}`).join("\n\n"),
+                ),
+              }
+            : {}),
         }),
       ]),
     ),
@@ -395,7 +380,7 @@ export function ResearchTerminal() {
         ⣿⣿⡟⠀⠀⣴⣶⣶⣦⠀⠀⠀⠀⠀⠀⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿    Shell: zsh 5.9
         ⣿⣿⡇⠀⠀⣿⣿⣿⣿⠀⠀⣶⣶⡄⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿    Focus: Low-Power CMOS
         ⣿⣿⣷⡀⠀⠻⠿⠿⠟⠀⠀⣿⣿⡇⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿    Theme: Semiconductor Dark
-        ⠹⣿⣿⣿⣦⣀⠀⠀⠀⢀⣼⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏    Papers: ${publications.length} IEEE
+        ⠹⣿⣿⣿⣦⣀⠀⠀⠀⢀⣼⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏    Papers: ${publications.filter((p) => p.status === "Published").length} published
         ⠀⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠀    Coffee: ███████████ 99%
         ⠀⠀⠀⠙⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠋⠀⠀⠀
 `)

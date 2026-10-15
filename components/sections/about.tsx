@@ -3,31 +3,9 @@
 import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { Cpu, Zap, Shield, GraduationCap, Atom } from "lucide-react"
-import { philosophy, profile } from "@/lib/content"
+import { philosophy, profile, researchDomains, researchStatement, type DomainIcon } from "@/lib/content"
 
-const researchDomains = [
-  {
-    icon: Cpu,
-    title: "Low-Power CMOS Analog IC Design",
-    description:
-      "Subthreshold circuits, adaptive biasing techniques, and scaled-node device physics for ultra-low-power applications including implantable devices and IoT sensors.",
-    tags: ["Subthreshold CMOS", "Adaptive Biasing", "45nm/65nm", "Op-Amp Design"],
-  },
-  {
-    icon: Zap,
-    title: "Analog Computing & Non-Von Neumann Circuits",
-    description:
-      "Current-mode Ising machines for combinatorial optimization, neuromorphic primitives, and novel computing paradigms that leverage analog physics for energy-efficient computation.",
-    tags: ["Ising Machines", "Current-Mode", "Spin Threshold Detection", "Neuromorphic"],
-  },
-  {
-    icon: Shield,
-    title: "Physical Security of Analog/Mixed-Signal Systems",
-    description:
-      "Electromagnetic side-channel leakage characterization, power analysis attacks, and embedded cryptographic evaluation for secure hardware design.",
-    tags: ["EM Side-Channel", "CPA Attacks", "TLS 1.3 Security", "EM Cartography"],
-  },
-]
+const domainIcons: Record<DomainIcon, typeof Cpu> = { cpu: Cpu, zap: Zap, shield: Shield }
 
 export function AboutSection() {
   const ref = useRef(null)
@@ -48,10 +26,8 @@ export function AboutSection() {
           <p className="font-serif text-3xl md:text-4xl font-semibold mb-6 text-balance">
             Bridging Theory and Silicon
           </p>
-          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            My research spans the intersection of analog circuit design, unconventional 
-            computing paradigms, and hardware security — developing circuits that are 
-            efficient, intelligent, and secure.
+          <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            {researchStatement}
           </p>
         </motion.div>
 
@@ -114,7 +90,9 @@ export function AboutSection() {
 
         {/* Research Domains */}
         <div className="grid md:grid-cols-3 gap-6">
-          {researchDomains.map((domain, index) => (
+          {researchDomains.map((domain, index) => {
+            const Icon = domainIcons[domain.icon]
+            return (
             <motion.div
               key={domain.title}
               initial={{ opacity: 0, y: 20 }}
@@ -126,7 +104,7 @@ export function AboutSection() {
               
               <div className="relative">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary mb-4">
-                  <domain.icon className="h-6 w-6" aria-hidden="true" />
+                  <Icon className="h-6 w-6" aria-hidden="true" />
                 </div>
                 
                 <h3 className="font-semibold text-xl mb-3 text-card-foreground">
@@ -149,7 +127,8 @@ export function AboutSection() {
                 </div>
               </div>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

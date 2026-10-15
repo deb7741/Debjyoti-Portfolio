@@ -51,6 +51,18 @@ export function HeroSection() {
           {profile.tagline}
         </motion.p>
 
+        {profile.status && (
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="-mt-6 mb-10 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary"
+          >
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
+            {profile.status}
+          </motion.p>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
