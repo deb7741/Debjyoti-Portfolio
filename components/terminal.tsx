@@ -2,7 +2,19 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Terminal as TerminalIcon, X, Minus, Square } from "lucide-react"
+import { Terminal as TerminalIcon, X, Minus } from "lucide-react"
+import {
+  contact,
+  experiences,
+  honours,
+  philosophy,
+  profile,
+  projects,
+  publications,
+  publicationsNote,
+  sections,
+  skillCategories,
+} from "@/lib/content"
 
 interface FileSystemNode {
   type: "dir" | "file"
@@ -10,358 +22,146 @@ interface FileSystemNode {
   children?: Record<string, FileSystemNode>
 }
 
+const file = (content: string): FileSystemNode => ({ type: "file", content })
+const dir = (children: Record<string, FileSystemNode>): FileSystemNode => ({ type: "dir", children })
+const heading = (text: string) => `${text.toUpperCase()}\n${"=".repeat(text.length)}`
+const bullets = (items: readonly string[]) => items.map((i) => `• ${i}`).join("\n")
+const slug = (text: string) =>
+  text.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+
+/**
+ * The terminal's virtual filesystem is generated from lib/content.ts, so it
+ * always matches what the page shows. Add content there, not here.
+ */
 const fileSystem: Record<string, FileSystemNode> = {
-  about: {
-    type: "dir",
-    children: {
-      "intro.txt": {
-        type: "file",
-        content: `DEBJYOTI CHOWBEY
-================
-Research Associate @ IISc Bangalore
+  about: dir({
+    "intro.txt": file(
+      `${heading(profile.name)}
+${profile.role} @ ${profile.affiliationShort}
 
-Electronics engineer specializing in analog IC design,
-unconventional computing, and hardware security.
+${profile.headline}.
+Focus: ${profile.focusAreas.join(" • ")}
 
-Education: B.Tech ECE, Tezpur University
-           CGPA: 8.06/10.0 | Rank 4 in Department
+Education: ${profile.education.degree}
+           ${profile.education.institution} — ${profile.education.detail}
 
 Type 'cd ..' to go back, or 'ls' to explore.`,
-      },
-      "philosophy.txt": {
-        type: "file",
-        content: `RESEARCH PHILOSOPHY
-===================
-My approach to research is:
+    ),
+    "philosophy.txt": file(
+      `${heading("Research Philosophy")}
+${bullets(philosophy.principles.map((p) => `${p.label}: ${p.description}`))}
 
-• Physics-driven: Understanding device behavior from first principles
-• Constraint-aware: Working within real-world limitations
-• Design-focused: Prioritizing practical implementation
-• Experimental: Validating through silicon and measurement
-• Rigorous: Following systematic verification methodology
+"${philosophy.summary}"`,
+    ),
+  }),
+  publications: dir(
+    Object.fromEntries([
+      ...publications.map((pub) => [
+        `${pub.id}.txt`,
+        file(
+          `${heading(`${pub.venue} — ${pub.status}`)}
+Title:   ${pub.title}
+Authors: ${pub.authors.join(", ")}
+Venue:   ${pub.venue}, ${pub.location} (${pub.year})${pub.doi ? `\nDOI:     ${pub.doi}` : ""}
 
-"Good analog design requires understanding both the 
- physics and the art of tradeoffs."`,
-      },
-    },
-  },
-  publications: {
-    type: "dir",
-    children: {
-      "ieee-devic-2025.txt": {
-        type: "file",
-        content: `IEEE DevIC 2025 - PUBLISHED
-===========================
-Title: A 45nm Two-Stage OTA with Adaptive Biasing for 
-       Low-Frequency Biomedical Applications
+Abstract: ${pub.abstract}
 
-Authors: D. Chowbey, S. S. Dhar, H. Rahaman
-Venue: IEEE DevIC 2025 Conference
-DOI: 10.1109/DevIC61308.2025.10817524
-Status: Published
+Type 'open publications' to jump to this section.`,
+        ),
+      ]),
+      ...(publicationsNote ? [["in-preparation.txt", file(publicationsNote)]] : []),
+    ]),
+  ),
+  experience: dir(
+    Object.fromEntries(
+      experiences.map((exp) => [
+        `${exp.id}.txt`,
+        file(
+          `${heading(exp.organization)}
+Role:   ${exp.title}
+Period: ${exp.period}
+Lab:    ${exp.lab}${exp.supervisor ? `\nSupervisor: ${exp.supervisor}` : ""}
+Where:  ${exp.location}
 
-Abstract: Presents adaptive biasing technique for 
-subthreshold operation with improved PVT tolerance.
+${exp.description}
 
-Type 'open publication-1' to navigate to this paper.`,
-      },
-      "ieee-gcon-2026.txt": {
-        type: "file",
-        content: `IEEE GCON 2026 - ACCEPTED
-=========================
-Title: Area-Efficient Adaptive Biasing with Low-Voltage 
-       Subthreshold Startup
+${bullets(exp.details)}`,
+        ),
+      ]),
+    ),
+  ),
+  projects: dir(
+    Object.fromEntries(
+      projects.map((pr) => [
+        pr.id,
+        dir({
+          "overview.txt": file(
+            `${heading(pr.title)}
+${pr.category} • ${pr.period}
+Tools: ${pr.tools}
 
-Authors: D. Chowbey, S. S. Dhar
-Venue: IEEE GCON 2026 Conference
-Status: Accepted (presentation pending)
+Problem:  ${pr.overview.problem}
 
-Abstract: Proposes area-efficient startup circuit for
-subthreshold analog systems.`,
-      },
-      "tsg-prep.txt": {
-        type: "file",
-        content: `TSG JOURNAL - IN PREPARATION
-============================
-Title: Electromagnetic Emanation Cartography and 
-       Side-Channel Profiling of TLS 1.3 Handshakes 
-       on Embedded Platforms
+Approach: ${pr.overview.approach}
 
-Authors: D. Chowbey, et al.
-Status: Manuscript in preparation
+Files: overview.txt  results.txt  design.txt  lessons.txt`,
+          ),
+          "results.txt": file(
+            `${heading("Key Results")}
+${pr.overview.results.map((r) => `${r.label.padEnd(14)}| ${r.value}`).join("\n")}
 
-Focus: EM side-channel analysis of cryptographic
-implementations on embedded systems.`,
-      },
-    },
-  },
-  experience: {
-    type: "dir",
-    children: {
-      "iisc.txt": {
-        type: "file",
-        content: `IISc BANGALORE
-==============
-Role: Research Associate
-Period: Feb 2026 — Present
-Lab: Circuits and Systems Lab
+${pr.deepDive.keyResults}`,
+          ),
+          "design.txt": file(
+            `${heading("Design Rationale")}
+${pr.deepDive.designRationale}
 
-Focus Areas:
-• Current-mode Ising machines for combinatorial optimization
-• Spin threshold detection techniques
-• Novel stochastic primitives for analog computing
-• Low-power neuromorphic circuit design
+${heading("Tradeoffs")}
+${pr.deepDive.tradeoffs}
 
-Advisor: Prof. [Advisor Name]`,
-      },
-      "rri.txt": {
-        type: "file",
-        content: `RAMAN RESEARCH INSTITUTE (RRI)
-==============================
-Role: Research Assistant (RA-II)
-Period: Jul 2025 — Jan 2026
-Group: Electronics Engineering Group
+${heading("Verification")}
+${pr.deepDive.verification}`,
+          ),
+          "lessons.txt": file(
+            `${heading("Lessons Learned")}
+${pr.deepDive.lessonsLearned}
 
-Contributions:
-• Digital back-end design using FPGA/Verilog
-• Radiometer instrumentation systems
-• Signal acquisition and DSP pipelines
-• Telescope receiver control systems
+${heading("Future Work")}
+${pr.deepDive.futureWork}`,
+          ),
+        }),
+      ]),
+    ),
+  ),
+  skills: dir(
+    Object.fromEntries(
+      skillCategories.map((cat) => [`${slug(cat.name)}.txt`, file(`${heading(cat.name)}\n${bullets(cat.skills)}`)]),
+    ),
+  ),
+  honours: dir({
+    "list.txt": file(
+      `${heading("Honours & Awards")}
+${bullets(honours.map((h) => `${h.title} (${h.year})`))}`,
+    ),
+  }),
+  contact: dir({
+    "info.txt": file(
+      `${heading("Contact Information")}
+Email:    ${contact.email}
+LinkedIn: ${contact.linkedin.replace(/^https?:\/\//, "")}
+GitHub:   ${contact.github.replace(/^https?:\/\//, "")}
 
-This experience bridged analog signal processing with
-digital system implementation for radio astronomy.`,
-      },
-      "tezpur.txt": {
-        type: "file",
-        content: `TEZPUR UNIVERSITY
-=================
-Role: VLSI Lab Project
-Period: Aug 2024 — Jun 2025
-
-Project: Low-Power Two-Stage Op-Amp in 45nm CMOS
-Result: Best Project Award, Class of 2025
-
-Tools: Cadence Virtuoso, ADE, Quantus
-Advisors: Dr. S. S. Dhar, Prof. H. Rahaman`,
-      },
-      "iitkgp.txt": {
-        type: "file",
-        content: `IIT KHARAGPUR
-=============
-Role: Summer Intern
-Period: Jun 2024 — Jul 2024
-Lab: Secured Embedded Architecture Lab (SEAL)
-
-Focus: Electromagnetic Side-Channel Analysis
-• CPA attacks on AES implementations
-• EM cartography and leakage characterization
-• TLS 1.3 security evaluation
-
-This internship sparked my interest in hardware security.`,
-      },
-    },
-  },
-  projects: {
-    type: "dir",
-    children: {
-      "opamp-45nm": {
-        type: "dir",
-        children: {
-          "overview.txt": {
-            type: "file",
-            content: `45nm TWO-STAGE OP-AMP
-=====================
-Status: FLAGSHIP PROJECT
-Award: Best Project, Class of 2025
-
-A full-custom low-power operational amplifier 
-designed in 45nm CMOS technology.
-
-Files in this directory:
-• specs.txt    - Performance specifications
-• design.txt   - Design methodology
-• results.txt  - Measurement results
-• lessons.txt  - Key learnings`,
-          },
-          "specs.txt": {
-            type: "file",
-            content: `PERFORMANCE SPECIFICATIONS
-==========================
-Parameter        | Value
------------------|------------
-DC Gain          | 67 dB
-GBW              | 3.7 MHz
-Power            | <10 μW
-Supply           | 1.0V
-Technology       | 45nm CMOS
-Phase Margin     | >60°
-Load Cap         | 1pF`,
-          },
-          "design.txt": {
-            type: "file",
-            content: `DESIGN METHODOLOGY
-==================
-1. Architecture: Two-stage Miller-compensated OTA
-2. Biasing: Adaptive subthreshold technique
-3. Layout: Full-custom with DRC/LVS clean
-4. Extraction: Quantus parasitic extraction
-5. Verification: All PVT corners (SS/TT/FF)
-
-Key Innovation:
-Adaptive biasing maintains performance across
-process corners while minimizing area overhead.`,
-          },
-          "results.txt": {
-            type: "file",
-            content: `MEASUREMENT RESULTS
-===================
-✓ DC Gain: 67 dB (target: >60 dB)
-✓ GBW: 3.7 MHz (target: >1 MHz)
-✓ Power: 8.3 μW (target: <10 μW)
-✓ Phase Margin: 65° (target: >60°)
-✓ PVT: <5% variation across corners
-
-Publications: 2 IEEE conference papers
-Recognition: University Best Project Award`,
-          },
-          "lessons.txt": {
-            type: "file",
-            content: `KEY LEARNINGS
-=============
-What worked well:
-• Systematic corner analysis early in design
-• Conservative phase margin budgeting
-• Careful layout-aware sizing
-
-What could improve:
-• Earlier parasitic extraction iterations
-• More aggressive power optimization possible
-• Could explore current-reuse architectures
-
-Next steps:
-• Tape-out validation (planned)
-• Extend to 28nm node
-• Add programmable gain stages`,
-          },
-        },
-      },
-      "ccd-sensor": {
-        type: "dir",
-        children: {
-          "overview.txt": {
-            type: "file",
-            content: `CCD SENSOR CHARACTERISATION
-===========================
-A noise analysis and calibration pipeline for
-astronomical CCD imaging sensors.
-
-Period: May 2024 — Jun 2024
-Tools: Python, NumPy, Matplotlib
-
-Focus: Understanding device-level noise sources
-for analog front-end design intuition.`,
-          },
-          "results.txt": {
-            type: "file",
-            content: `ANALYSIS RESULTS
-================
-Characterized noise sources:
-• Dark current mapping
-• Thermal noise profiling
-• Hot-pixel detection and flagging
-• Read noise estimation
-
-Deliverable: Automated Python pipeline for
-sensor calibration in low-light conditions.`,
-          },
-        },
-      },
-    },
-  },
-  skills: {
-    type: "dir",
-    children: {
-      "analog.txt": {
-        type: "file",
-        content: `ANALOG & MIXED-SIGNAL
-=====================
-• Op-Amp/OTA design
-• Bandgap references
-• Biasing circuits
-• Current mirrors
-• Subthreshold design
-• PVT-tolerant circuits
-• Noise analysis`,
-      },
-      "tools.txt": {
-        type: "file",
-        content: `EDA TOOLS
-=========
-• Cadence Virtuoso (Schematic/Layout)
-• Cadence ADE (Simulation)
-• Cadence Quantus (Extraction)
-• LTspice
-• ngspice
-• Calibre (DRC/LVS)`,
-      },
-      "digital.txt": {
-        type: "file",
-        content: `DIGITAL & FPGA
-==============
-• Verilog HDL
-• FPGA prototyping
-• Digital backend flow
-• Timing analysis
-• RTL synthesis`,
-      },
-      "programming.txt": {
-        type: "file",
-        content: `PROGRAMMING
-===========
-• Python (NumPy, Matplotlib, SciPy)
-• MATLAB/Octave
-• C for embedded
-• SKILL scripting (Cadence)
-• TCL`,
-      },
-    },
-  },
-  honours: {
-    type: "dir",
-    children: {
-      "list.txt": {
-        type: "file",
-        content: `HONOURS & AWARDS
-================
-• GATE EC Qualified (2025, 2026)
-• Rank 4, ECE Department, Tezpur University
-• Best Project Award, Class of 2025
-• 2nd Place, IEEE Texplorer Competition
-• Astronomy Club Coordinator (2022-23)`,
-      },
-    },
-  },
-  contact: {
-    type: "dir",
-    children: {
-      "info.txt": {
-        type: "file",
-        content: `CONTACT INFORMATION
-===================
-Email:    chowbeydebjyoti@gmail.com
-LinkedIn: linkedin.com/in/debjyotichowbey
-GitHub:   github.com/deb7741
-
-Currently based at IISc Bangalore.
+Currently based at ${profile.affiliationShort}.
 Open to research collaborations and discussions.`,
-      },
-    },
-  },
+    ),
+  }),
 }
+
+const COMMANDS = ["help", "ls", "cd", "cat", "tree", "open", "clear", "whoami", "pwd", "exit"]
 
 const WELCOME_MESSAGE = `
 ┌─────────────────────────────────────────────────────┐
-│  DEBJYOTI CHOWBEY // Research Terminal v1.0         │
+│  DEBJYOTI CHOWBEY // Research Terminal v1.1         │
 │  Analog IC Design • Computing • Security            │
 └─────────────────────────────────────────────────────┘
 
@@ -392,7 +192,8 @@ EXAMPLES
 
 TIPS
 ----
-  • Use Tab for command hints
+  • Tab completes commands and paths
+  • Esc closes the terminal
   • Files end in .txt, directories don't
   • Type 'cd ..' to go back
 `
@@ -564,27 +365,22 @@ export function ResearchTerminal() {
       }
 
       case "open": {
-        const sectionMap: Record<string, string> = {
-          about: "#about",
-          publications: "#publications",
-          "publication-1": "#publications",
-          "publication-2": "#publications",
-          experience: "#experience",
-          projects: "#projects",
-          skills: "#skills",
-          honours: "#honours",
-          honors: "#honours",
-          contact: "#contact",
-        }
+        const sectionMap: Record<string, string> = Object.fromEntries(
+          sections.map((sec) => [sec.id, `#${sec.id}`]),
+        )
+        sectionMap.honors = "#honours"
+        sectionMap.map = "#research-map"
+        sectionMap.top = "#top"
         const target = sectionMap[arg.toLowerCase()]
         if (target) {
           addOutput(`Opening ${arg}...`)
+          setIsMinimized(true)
           setTimeout(() => {
             document.querySelector(target)?.scrollIntoView({ behavior: "smooth" })
-          }, 300)
+          }, 150)
         } else {
           addOutput(`open: unknown section '${arg}'`, "error")
-          addOutput("Available: about, publications, experience, projects, skills, honours, contact")
+          addOutput(`Available: ${sections.map((sec) => sec.id).join(", ")}`)
         }
         break
       }
@@ -594,12 +390,12 @@ export function ResearchTerminal() {
         ⠀⠀⠀⠀⣠⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣦⣄⠀⠀⠀⠀    debjyoti@research
         ⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀    ------------------
         ⠀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠀    OS: Research Terminal v1.0
-        ⣸⣿⣿⣿⣿⡿⠿⠿⠿⠿⠿⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣇    Host: IISc Bangalore
+        ⣸⣿⣿⣿⣿⡿⠿⠿⠿⠿⠿⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣇    Host: ${profile.affiliationShort}
         ⣿⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿    Kernel: Analog IC Design
         ⣿⣿⡟⠀⠀⣴⣶⣶⣦⠀⠀⠀⠀⠀⠀⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿    Shell: zsh 5.9
         ⣿⣿⡇⠀⠀⣿⣿⣿⣿⠀⠀⣶⣶⡄⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿    Focus: Low-Power CMOS
         ⣿⣿⣷⡀⠀⠻⠿⠿⠟⠀⠀⣿⣿⡇⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿    Theme: Semiconductor Dark
-        ⠹⣿⣿⣿⣦⣀⠀⠀⠀⢀⣼⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏    Papers: 2 IEEE Published
+        ⠹⣿⣿⣿⣦⣀⠀⠀⠀⢀⣼⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏    Papers: ${publications.length} IEEE
         ⠀⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠀    Coffee: ███████████ 99%
         ⠀⠀⠀⠙⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠋⠀⠀⠀
 `)
@@ -682,21 +478,36 @@ export function ResearchTerminal() {
       }
     } else if (e.key === "Tab") {
       e.preventDefault()
-      // Simple tab completion for directories
-      const dir = getCurrentDir()
-      if (dir.children) {
-        const matches = Object.keys(dir.children).filter((name) =>
-          name.toLowerCase().startsWith(currentInput.split(" ").pop()?.toLowerCase() || "")
-        )
-        if (matches.length === 1) {
-          const parts = currentInput.split(" ")
-          parts[parts.length - 1] = matches[0]
-          setCurrentInput(parts.join(" "))
-        }
+      const parts = currentInput.split(" ")
+      const word = parts[parts.length - 1]
+      let candidates: string[]
+      let prefix = ""
+      if (parts.length === 1) {
+        candidates = COMMANDS
+      } else if (parts[0] === "open") {
+        candidates = sections.map((sec) => sec.id)
+      } else {
+        // Complete the last path segment, relative to the directory typed so far.
+        const slash = word.lastIndexOf("/")
+        prefix = slash >= 0 ? word.slice(0, slash + 1) : ""
+        const base = prefix ? navigateToPath(prefix) : getCurrentDir()
+        candidates = base?.children
+          ? Object.entries(base.children).map(([name, node]) => (node.type === "dir" ? `${name}/` : name))
+          : []
+      }
+      const partial = word.slice(prefix.length).toLowerCase()
+      const matches = candidates.filter((c) => c.toLowerCase().startsWith(partial))
+      if (matches.length === 1) {
+        parts[parts.length - 1] = prefix + matches[0]
+        setCurrentInput(parts.join(" ") + (matches[0].endsWith("/") ? "" : " "))
+      } else if (matches.length > 1) {
+        addOutput(matches.join("  "))
       }
     } else if (e.key === "l" && e.ctrlKey) {
       e.preventDefault()
       setLines([])
+    } else if (e.key === "Escape") {
+      setIsOpen(false)
     }
   }
 
@@ -711,7 +522,7 @@ export function ResearchTerminal() {
         className={`fixed bottom-6 right-6 z-40 p-3 bg-card border border-border rounded-lg shadow-lg hover:border-primary/50 hover:bg-card/80 transition-all ${isOpen ? "opacity-0 pointer-events-none" : ""}`}
         aria-label="Open terminal"
       >
-        <TerminalIcon className="h-5 w-5 text-primary" />
+        <TerminalIcon className="h-5 w-5 text-primary" aria-hidden="true" />
       </motion.button>
 
       {/* Terminal Window */}
@@ -726,37 +537,32 @@ export function ResearchTerminal() {
             }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-6 right-6 z-50 w-[min(600px,calc(100vw-3rem))] bg-[#0d0d14] border border-border rounded-lg shadow-2xl overflow-hidden"
+            className={`fixed bottom-6 right-6 z-50 w-[min(600px,calc(100vw-3rem))] ${isMinimized ? "pointer-events-none" : ""} bg-[#0d0d14] border border-zinc-800 rounded-lg shadow-2xl overflow-hidden`}
+            role="dialog"
+            aria-label="Research terminal"
           >
             {/* Title Bar */}
-            <div className="flex items-center justify-between px-4 py-2 bg-[#16161e] border-b border-border">
+            <div className="flex items-center justify-between px-4 py-2 bg-[#16161e] border-b border-zinc-800">
               <div className="flex items-center gap-2">
-                <TerminalIcon className="h-4 w-4 text-primary" />
-                <span className="text-sm font-mono text-muted-foreground">
+                <TerminalIcon className="h-4 w-4 text-violet-400" aria-hidden="true" />
+                <span className="text-sm font-mono text-zinc-400">
                   research@debjyoti: ~/{currentPath.join("/")}
                 </span>
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setIsMinimized(true)}
-                  className="p-1.5 hover:bg-secondary rounded transition-colors"
-                  aria-label="Minimize"
+                  className="p-1.5 hover:bg-zinc-800 rounded transition-colors"
+                  aria-label="Minimize terminal"
                 >
-                  <Minus className="h-3 w-3 text-muted-foreground" />
-                </button>
-                <button
-                  onClick={() => setIsMinimized(!isMinimized)}
-                  className="p-1.5 hover:bg-secondary rounded transition-colors"
-                  aria-label="Maximize"
-                >
-                  <Square className="h-3 w-3 text-muted-foreground" />
+                  <Minus className="h-3 w-3 text-zinc-400" />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-1.5 hover:bg-destructive/20 rounded transition-colors"
-                  aria-label="Close"
+                  className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
+                  aria-label="Close terminal"
                 >
-                  <X className="h-3 w-3 text-muted-foreground" />
+                  <X className="h-3 w-3 text-zinc-400" />
                 </button>
               </div>
             </div>
@@ -765,17 +571,19 @@ export function ResearchTerminal() {
             <div
               ref={terminalRef}
               onClick={() => inputRef.current?.focus()}
-              className="h-80 overflow-y-auto p-4 font-mono text-sm cursor-text"
+              className="h-80 overflow-y-auto p-4 font-mono text-xs sm:text-sm cursor-text"
+              role="log"
+              aria-live="polite"
             >
               {lines.map((line, index) => (
                 <div
                   key={index}
                   className={`whitespace-pre-wrap mb-1 ${
                     line.type === "input"
-                      ? "text-primary"
+                      ? "text-violet-400"
                       : line.type === "error"
                         ? "text-red-400"
-                        : "text-foreground/80"
+                        : "text-zinc-300"
                   }`}
                 >
                   {line.content}
@@ -784,7 +592,7 @@ export function ResearchTerminal() {
 
               {/* Input Line */}
               <div className="flex items-center gap-2">
-                <span className="text-primary shrink-0">
+                <span className="text-violet-400 shrink-0">
                   ~/{currentPath.join("/")}$
                 </span>
                 <input
@@ -793,12 +601,12 @@ export function ResearchTerminal() {
                   value={currentInput}
                   onChange={(e) => setCurrentInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 bg-transparent outline-none text-foreground caret-primary"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-zinc-100 caret-violet-400"
+                  aria-label="Terminal command"
                   autoComplete="off"
                   spellCheck={false}
                 />
-                <span className="w-2 h-4 bg-primary animate-pulse" />
-              </div>
+                              </div>
             </div>
           </motion.div>
         )}
@@ -811,7 +619,9 @@ export function ResearchTerminal() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
+            type="button"
             onClick={() => setIsMinimized(false)}
+            aria-label="Restore terminal"
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg shadow-lg hover:border-primary/50 transition-all"
           >
             <TerminalIcon className="h-4 w-4 text-primary" />

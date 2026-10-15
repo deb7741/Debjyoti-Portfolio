@@ -3,51 +3,22 @@
 import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { Award, Trophy, Star, Medal, Users } from "lucide-react"
+import { honours, type HonourIcon } from "@/lib/content"
 
-const honours = [
-  {
-    icon: Trophy,
-    title: "GATE EC — Qualified 2025 & 2026",
-    description: "Graduate Aptitude Test in Engineering, Electronics & Communication",
-    year: "2025, 2026",
-    highlight: "Qualified",
-  },
-  {
-    icon: Medal,
-    title: "Rank 4, ECE Department",
-    description: "Tezpur University, Class of 2025",
-    year: "2025",
-    highlight: "Top 5%",
-  },
-  {
-    icon: Award,
-    title: "University Best Project Award 2025",
-    description: "Low-Power 45nm CMOS Op-Amp — Full-custom design with 2 IEEE publications",
-    year: "2025",
-    highlight: "Best Project",
-  },
-  {
-    icon: Star,
-    title: "2nd Place, IEEE Texplorer Research Fair",
-    description: "Oral presentation at IEEE DevIC 2025, Kalyani, India",
-    year: "2025",
-    highlight: "2nd Place",
-  },
-  {
-    icon: Users,
-    title: "Coordinator, Astronomy Club",
-    description: "Tezpur University — Organised technical seminars and public outreach programmes",
-    year: "2022—2024",
-    highlight: "Leadership",
-  },
-]
+const honourIcons: Record<HonourIcon, typeof Award> = {
+  trophy: Trophy,
+  medal: Medal,
+  award: Award,
+  star: Star,
+  users: Users,
+}
 
 export function HonoursSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   return (
-    <section className="py-24 md:py-32 px-6 bg-card/50" ref={ref}>
+    <section id="honours" className="py-24 md:py-32 px-6 bg-card/50 scroll-mt-16" ref={ref}>
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -64,7 +35,9 @@ export function HonoursSection() {
         </motion.div>
 
         <div className="grid sm:grid-cols-2 gap-4">
-          {honours.map((honour, index) => (
+          {honours.map((honour, index) => {
+            const Icon = honourIcons[honour.icon]
+            return (
             <motion.div
               key={honour.title}
               initial={{ opacity: 0, y: 20 }}
@@ -74,7 +47,7 @@ export function HonoursSection() {
               className="group flex gap-4 p-5 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
             >
               <div className="shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                <honour.icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
@@ -93,7 +66,8 @@ export function HonoursSection() {
                 </span>
               </div>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

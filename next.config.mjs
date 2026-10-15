@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Type errors now fail the build instead of being silently shipped.
   images: {
-    unoptimized: true,
+    formats: ["image/avif", "image/webp"],
+  },
+  experimental: {
+    // Tree-shake icon and animation imports so only what's used is bundled.
+    optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 }
 

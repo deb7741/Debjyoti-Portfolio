@@ -4,25 +4,21 @@ import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { Mail, Linkedin, Github, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { contact } from "@/lib/content"
 
 const contactLinks = [
-  {
-    icon: Mail,
-    label: "Email",
-    value: "chowbeydebjyoti@gmail.com",
-    href: "mailto:chowbeydebjyoti@gmail.com",
-  },
+  { icon: Mail, label: "Email", value: contact.email, href: `mailto:${contact.email}` },
   {
     icon: Linkedin,
     label: "LinkedIn",
-    value: "linkedin.com/in/debjyotichowbey",
-    href: "https://linkedin.com/in/debjyotichowbey",
+    value: contact.linkedin.replace(/^https?:\/\//, ""),
+    href: contact.linkedin,
   },
   {
     icon: Github,
     label: "GitHub",
-    value: "github.com/deb7741",
-    href: "https://github.com/deb7741",
+    value: contact.github.replace(/^https?:\/\//, ""),
+    href: contact.github,
   },
 ]
 
@@ -31,7 +27,7 @@ export function ContactSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   return (
-    <section id="contact" className="py-24 md:py-32 px-6" ref={ref}>
+    <section id="contact" className="py-24 md:py-32 px-6 scroll-mt-16" ref={ref}>
       <div className="max-w-2xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -69,14 +65,17 @@ export function ContactSection() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <link.icon className="h-5 w-5" />
+                  <link.icon className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="text-left">
                   <p className="text-sm text-muted-foreground">{link.label}</p>
                   <p className="font-medium text-card-foreground">{link.value}</p>
                 </div>
               </div>
-              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              <ExternalLink
+                className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors"
+                aria-hidden="true"
+              />
             </motion.a>
           ))}
         </motion.div>
@@ -88,7 +87,7 @@ export function ContactSection() {
           className="mt-12"
         >
           <Button asChild size="lg" className="gap-2">
-            <a href="mailto:chowbeydebjyoti@gmail.com">
+            <a href={`mailto:${contact.email}`}>
               <Mail className="h-4 w-4" />
               Send Email
             </a>

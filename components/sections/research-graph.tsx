@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import { motion, useInView } from "framer-motion"
+import { useState, useRef, useEffect, useMemo } from "react"
+import { motion, useInView, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 
 interface GraphNode {
@@ -215,15 +215,17 @@ const edges: GraphEdge[] = [
   { from: "fpga", to: "neuromorphic" },
 ]
 
-const categoryColors: Record<string, { bg: string; border: string; text: string }> = {
+const nodeById = new Map(nodes.map((n) => [n.id, n]))
+
+const categoryColors: Record<GraphNode["category"], { bg: string; border: string; text: string }> = {
   core: { bg: "bg-primary/20", border: "border-primary", text: "text-primary" },
-  analog: { bg: "bg-indigo-500/20", border: "border-indigo-500/50", text: "text-indigo-400" },
-  computing: { bg: "bg-violet-500/20", border: "border-violet-500/50", text: "text-violet-400" },
-  security: { bg: "bg-amber-500/20", border: "border-amber-500/50", text: "text-amber-400" },
-  rri: { bg: "bg-emerald-500/20", border: "border-emerald-500/50", text: "text-emerald-400" },
+  analog: { bg: "bg-indigo-500/20", border: "border-indigo-500/50", text: "text-indigo-700 dark:text-indigo-400" },
+  computing: { bg: "bg-violet-500/20", border: "border-violet-500/50", text: "text-violet-700 dark:text-violet-400" },
+  security: { bg: "bg-amber-500/20", border: "border-amber-500/50", text: "text-amber-700 dark:text-amber-400" },
+  rri: { bg: "bg-emerald-500/20", border: "border-emerald-500/50", text: "text-emerald-700 dark:text-emerald-400" },
 }
 
-const categoryLabels: Record<string, string> = {
+const categoryLabels: Record<GraphNode["category"], string> = {
   core: "Core Expertise",
   analog: "Analog Design",
   computing: "Analog Computing",
@@ -231,57 +233,56 @@ const categoryLabels: Record<string, string> = {
   rri: "RRI / Digital Systems",
 }
 
+/** Graph is drawn at least this wide; narrower screens scroll horizontally. */
+const MIN_GRAPH_WIDTH = 720
+
 export function ResearchGraph() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
   const [hoveredNode, setHoveredNode] = useState<string | null>(null)
-  const [dimensions, setDimensions] = useState({ width: 800, height: 500 })
+  const [width, setWidth] = useState(MIN_GRAPH_WIDTH)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Track the container's width (ResizeObserver also catches layout changes, not just window resizes).
   useEffect(() => {
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
-        setDimensions({
-          width: rect.width,
-          height: Math.max(400, Math.min(500, rect.width * 0.6)),
-        })
-      }
-    }
-    updateDimensions()
-    window.addEventListener("resize", updateDimensions)
-    return () => window.removeEventListener("resize", updateDimensions)
+    const el = containerRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      setWidth(Math.max(MIN_GRAPH_WIDTH, entry.contentRect.width))
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
-  const getNodePosition = useCallback(
-    (node: GraphNode) => ({
-      x: (node.x / 100) * dimensions.width,
-      y: (node.y / 100) * dimensions.height,
-    }),
-    [dimensions]
-  )
+  const height = Math.max(420, Math.min(520, width * 0.6))
+  // Node coordinates are 0–100; map them into a padded box so edge labels never clip.
+  const pos = (node: GraphNode) => ({
+    x: (0.08 + (node.x / 100) * 0.84) * width,
+    y: (0.07 + (node.y / 100) * 0.86) * height,
+  })
 
-  const isEdgeHighlighted = useCallback(
-    (edge: GraphEdge) => {
-      if (!hoveredNode) return false
-      return edge.from === hoveredNode || edge.to === hoveredNode
-    },
-    [hoveredNode]
-  )
+  // Neighbours of the hovered/focused node, computed once per hover change.
+  const highlightedIds = useMemo(() => {
+    if (!hoveredNode) return null
+    const set = new Set<string>([hoveredNode])
+    nodeById.get(hoveredNode)?.related.forEach((id) => set.add(id))
+    edges.forEach((e) => {
+      if (e.from === hoveredNode) set.add(e.to)
+      if (e.to === hoveredNode) set.add(e.from)
+    })
+    return set
+  }, [hoveredNode])
 
-  const isNodeHighlighted = useCallback(
-    (nodeId: string) => {
-      if (!hoveredNode) return true
-      if (nodeId === hoveredNode) return true
-      const node = nodes.find((n) => n.id === hoveredNode)
-      return node?.related.includes(nodeId) || false
-    },
-    [hoveredNode]
-  )
+  useEffect(() => {
+    if (!selectedNode) return
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelectedNode(null)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [selectedNode])
 
   return (
-    <section id="research-map" className="py-24 md:py-32 px-6" ref={ref}>
+    <section id="research-map" className="py-24 md:py-32 px-6 scroll-mt-16" ref={ref}>
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -289,9 +290,7 @@ export function ResearchGraph() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h2 className="text-sm tracking-[0.3em] text-primary uppercase mb-4">
-            Research Map
-          </h2>
+          <h2 className="text-sm tracking-[0.3em] text-primary uppercase mb-4">Research Map</h2>
           <p className="font-serif text-3xl md:text-4xl font-semibold mb-4 text-balance">
             Knowledge Graph
           </p>
@@ -308,138 +307,140 @@ export function ResearchGraph() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex flex-wrap justify-center gap-4 mb-8"
         >
-          {Object.entries(categoryLabels).map(([key, label]) => (
+          {(Object.keys(categoryLabels) as GraphNode["category"][]).map((key) => (
             <div key={key} className="flex items-center gap-2">
               <div
                 className={`w-3 h-3 rounded-full ${categoryColors[key].bg} border ${categoryColors[key].border}`}
+                aria-hidden="true"
               />
-              <span className="text-xs text-muted-foreground">{label}</span>
+              <span className="text-xs text-muted-foreground">{categoryLabels[key]}</span>
             </div>
           ))}
         </motion.div>
 
-        {/* Graph Container */}
-        <motion.div
-          ref={containerRef}
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="relative bg-card/30 border border-border rounded-lg overflow-hidden"
-          style={{ height: dimensions.height }}
-        >
-          <svg
-            width={dimensions.width}
-            height={dimensions.height}
-            className="absolute inset-0"
-          >
-            {/* Edges */}
-            <g>
-              {edges.map((edge, index) => {
-                const fromNode = nodes.find((n) => n.id === edge.from)
-                const toNode = nodes.find((n) => n.id === edge.to)
-                if (!fromNode || !toNode) return null
-                const from = getNodePosition(fromNode)
-                const to = getNodePosition(toNode)
-                const highlighted = isEdgeHighlighted(edge)
-                return (
-                  <motion.line
-                    key={`${edge.from}-${edge.to}`}
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={isInView ? { pathLength: 1, opacity: highlighted ? 0.6 : 0.15 } : {}}
-                    transition={{ duration: 0.5, delay: 0.5 + index * 0.02 }}
-                    x1={from.x}
-                    y1={from.y}
-                    x2={to.x}
-                    y2={to.y}
-                    stroke={highlighted ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"}
-                    strokeWidth={highlighted ? 2 : 1}
-                    className="transition-all duration-200"
-                  />
-                )
-              })}
-            </g>
-          </svg>
-
-          {/* Nodes */}
-          {nodes.map((node, index) => {
-            const pos = getNodePosition(node)
-            const colors = categoryColors[node.category]
-            const highlighted = isNodeHighlighted(node.id)
-            return (
-              <motion.button
-                key={node.id}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={isInView ? { 
-                  opacity: highlighted ? 1 : 0.3, 
-                  scale: 1 
-                } : {}}
-                transition={{ duration: 0.3, delay: 0.6 + index * 0.03 }}
-                style={{
-                  position: "absolute",
-                  left: pos.x,
-                  top: pos.y,
-                  transform: "translate(-50%, -50%)",
-                }}
-                onMouseEnter={() => setHoveredNode(node.id)}
-                onMouseLeave={() => setHoveredNode(null)}
-                onClick={() => setSelectedNode(node)}
-                className={`group px-2.5 py-1.5 rounded-md border text-xs font-medium whitespace-nowrap transition-all duration-200 ${colors.bg} ${colors.border} ${colors.text} hover:scale-110 hover:shadow-lg`}
-              >
-                {node.label}
-              </motion.button>
-            )
-          })}
-
-          {/* Node Detail Panel */}
-          {selectedNode && (
+        <div className="relative">
+          {/* Scrollable on narrow screens so labels never overlap or clip */}
+          <div className="overflow-x-auto rounded-lg border border-border bg-card/30">
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="absolute top-4 right-4 w-72 bg-card border border-border rounded-lg p-4 shadow-xl"
+              ref={containerRef}
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="relative"
+              style={{ height, minWidth: MIN_GRAPH_WIDTH }}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <span
-                    className={`text-xs font-medium ${categoryColors[selectedNode.category].text}`}
-                  >
-                    {categoryLabels[selectedNode.category]}
-                  </span>
-                  <h3 className="font-semibold text-card-foreground">
-                    {selectedNode.label}
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setSelectedNode(null)}
-                  className="p-1 hover:bg-secondary rounded transition-colors"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                {selectedNode.description}
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {selectedNode.related.map((relId) => {
-                  const relNode = nodes.find((n) => n.id === relId)
-                  if (!relNode) return null
+              <svg width={width} height={height} className="absolute inset-0" aria-hidden="true">
+                {edges.map((edge, index) => {
+                  const fromNode = nodeById.get(edge.from)
+                  const toNode = nodeById.get(edge.to)
+                  if (!fromNode || !toNode) return null
+                  const from = pos(fromNode)
+                  const to = pos(toNode)
+                  const highlighted =
+                    hoveredNode !== null && (edge.from === hoveredNode || edge.to === hoveredNode)
                   return (
-                    <button
-                      key={relId}
-                      onClick={() => setSelectedNode(relNode)}
-                      className={`text-xs px-2 py-0.5 rounded ${categoryColors[relNode.category].bg} ${categoryColors[relNode.category].text} hover:opacity-80 transition-opacity`}
-                    >
-                      {relNode.label}
-                    </button>
+                    <motion.line
+                      key={`${edge.from}-${edge.to}`}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={
+                        isInView ? { pathLength: 1, opacity: highlighted ? 0.8 : hoveredNode ? 0.08 : 0.3 } : {}
+                      }
+                      transition={{ duration: 0.5, delay: hoveredNode ? 0 : 0.5 + index * 0.02 }}
+                      x1={from.x}
+                      y1={from.y}
+                      x2={to.x}
+                      y2={to.y}
+                      stroke={highlighted ? "var(--primary)" : "var(--muted-foreground)"}
+                      strokeWidth={highlighted ? 2 : 1}
+                    />
                   )
                 })}
-              </div>
+              </svg>
+
+              {nodes.map((node, index) => {
+                const p = pos(node)
+                const colors = categoryColors[node.category]
+                const highlighted = !highlightedIds || highlightedIds.has(node.id)
+                return (
+                  <motion.button
+                    key={node.id}
+                    type="button"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={isInView ? { opacity: highlighted ? 1 : 0.3, scale: 1 } : {}}
+                    transition={{ duration: 0.3, delay: hoveredNode ? 0 : 0.6 + index * 0.03 }}
+                    style={{ position: "absolute", left: p.x, top: p.y, x: "-50%", y: "-50%" }}
+                    onMouseEnter={() => setHoveredNode(node.id)}
+                    onMouseLeave={() => setHoveredNode(null)}
+                    onFocus={() => setHoveredNode(node.id)}
+                    onBlur={() => setHoveredNode(null)}
+                    onClick={() => setSelectedNode(node)}
+                    aria-pressed={selectedNode?.id === node.id}
+                    className={`px-2.5 py-1.5 rounded-md border text-xs font-medium whitespace-nowrap bg-card transition-shadow duration-200 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${colors.border} ${colors.text}`}
+                  >
+                    <span className={`absolute inset-0 rounded-md ${colors.bg}`} aria-hidden="true" />
+                    <span className="relative">{node.label}</span>
+                  </motion.button>
+                )
+              })}
             </motion.div>
-          )}
-        </motion.div>
+          </div>
+
+          {/* Detail panel sits outside the scroller so it's always fully visible */}
+          <AnimatePresence>
+            {selectedNode && (
+              <motion.div
+                key={selectedNode.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+                role="dialog"
+                aria-label={selectedNode.label}
+                className="absolute top-4 right-4 left-4 sm:left-auto sm:w-72 z-10 bg-card border border-border rounded-lg p-4 shadow-xl"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <span className={`text-xs font-medium ${categoryColors[selectedNode.category].text}`}>
+                      {categoryLabels[selectedNode.category]}
+                    </span>
+                    <h3 className="font-semibold text-card-foreground">{selectedNode.label}</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedNode(null)}
+                    className="p-1 hover:bg-secondary rounded transition-colors"
+                    aria-label="Close details"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                  {selectedNode.description}
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {selectedNode.related.map((relId) => {
+                    const relNode = nodeById.get(relId)
+                    if (!relNode) return null
+                    return (
+                      <button
+                        key={relId}
+                        type="button"
+                        onClick={() => setSelectedNode(relNode)}
+                        className={`text-xs px-2 py-0.5 rounded ${categoryColors[relNode.category].bg} ${categoryColors[relNode.category].text} hover:opacity-80 transition-opacity`}
+                      >
+                        {relNode.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4">
-          Click on any node to see details. Hover to highlight connections.
+          Click or tab to any node to see details. Hover or focus to highlight connections.
+          <span className="sm:hidden"> Swipe sideways to see the whole map.</span>
         </p>
       </div>
     </section>

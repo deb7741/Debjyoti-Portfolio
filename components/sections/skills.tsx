@@ -2,82 +2,7 @@
 
 import { motion, useInView } from "framer-motion"
 import { useRef, useState } from "react"
-
-const skillCategories = [
-  {
-    name: "Analog & Mixed-Signal",
-    skills: [
-      "Op-Amp Design (Two-Stage, Folded-Cascode)",
-      "Subthreshold/Adaptive Biasing",
-      "Current-Mode Circuits",
-      "Flash ADC Design",
-      "LDO Concepts",
-      "Full-Custom Layout",
-    ],
-  },
-  {
-    name: "Analog Computing",
-    skills: [
-      "Current-Mode Ising Machines",
-      "Spin-Threshold Detection",
-      "Differential-Amplifier Comparators",
-      "Coupled Oscillator Networks",
-      "65nm CMOS Design",
-    ],
-  },
-  {
-    name: "Physical Security",
-    skills: [
-      "Power/EM Side-Channel Analysis",
-      "Correlation Power Analysis (CPA)",
-      "EM Cartography",
-      "Embedded AES Evaluation",
-      "Analog Signal Acquisition",
-    ],
-  },
-  {
-    name: "EDA Tools",
-    skills: [
-      "Cadence Virtuoso (ADE L/XL)",
-      "Layout XL",
-      "Spectre Simulator",
-      "Quantus Extraction",
-      "Xilinx Vivado/ISE",
-      "ModelSim",
-    ],
-  },
-  {
-    name: "Digital & FPGA",
-    skills: [
-      "RTL (Verilog/VHDL)",
-      "FSM Design",
-      "Static Timing Analysis",
-      "Clock-Domain Crossing",
-      "RFSoC ZCU216",
-    ],
-  },
-  {
-    name: "Device Fundamentals",
-    skills: [
-      "MOS Capacitor Physics",
-      "Short-Channel Effects",
-      "CMOS Scaling Challenges",
-      "Leakage Mechanisms",
-    ],
-  },
-  {
-    name: "Programming",
-    skills: [
-      "Python",
-      "MATLAB",
-      "C",
-      "Verilog HDL",
-      "VHDL",
-      "Linux",
-      "Git",
-    ],
-  },
-]
+import { coursework, skillCategories } from "@/lib/content"
 
 function SkillCategory({
   category,
@@ -96,7 +21,9 @@ function SkillCategory({
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
       viewport={{ once: true }}
+      type="button"
       onClick={onSelect}
+      aria-pressed={isActive}
       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
         isActive
           ? "bg-primary text-primary-foreground"
@@ -114,7 +41,7 @@ export function SkillsSection() {
   const [activeCategory, setActiveCategory] = useState(0)
 
   return (
-    <section id="skills" className="py-24 md:py-32 px-6" ref={ref}>
+    <section id="skills" className="py-24 md:py-32 px-6 scroll-mt-16" ref={ref}>
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -175,13 +102,7 @@ export function SkillsSection() {
             Relevant Coursework
           </h3>
           <div className="flex flex-wrap justify-center gap-2">
-            {[
-              "Semiconductor Devices",
-              "Analog & Mixed-Signal IC Design",
-              "Digital System Design",
-              "Digital Signal Processing",
-              "VHDL",
-            ].map((course) => (
+            {coursework.map((course) => (
               <span
                 key={course}
                 className="text-xs px-3 py-1.5 rounded-full bg-secondary/50 text-secondary-foreground"

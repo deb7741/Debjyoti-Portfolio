@@ -1,9 +1,9 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { useInView } from "framer-motion"
+import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { Cpu, Zap, Shield, GraduationCap, Atom } from "lucide-react"
+import { philosophy, profile } from "@/lib/content"
 
 const researchDomains = [
   {
@@ -27,14 +27,6 @@ const researchDomains = [
       "Electromagnetic side-channel leakage characterization, power analysis attacks, and embedded cryptographic evaluation for secure hardware design.",
     tags: ["EM Side-Channel", "CPA Attacks", "TLS 1.3 Security", "EM Cartography"],
   },
-]
-
-const philosophyPrinciples = [
-  { label: "Physics-driven", description: "First-principles device understanding" },
-  { label: "Constraint-aware", description: "Working within real-world limits" },
-  { label: "Design-focused", description: "Practical implementation priority" },
-  { label: "Experimental", description: "Silicon and measurement validation" },
-  { label: "Rigorous", description: "Systematic verification methodology" },
 ]
 
 export function AboutSection() {
@@ -73,8 +65,10 @@ export function AboutSection() {
           <div className="inline-flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-lg">
             <GraduationCap className="h-5 w-5 text-primary" />
             <div className="text-left">
-              <p className="font-medium text-card-foreground">B.Tech, Electronics & Communication Engineering</p>
-              <p className="text-sm text-muted-foreground">Tezpur University • CGPA: 8.06/10.0 • Rank 4 in Department</p>
+              <p className="font-medium text-card-foreground">{profile.education.degree}</p>
+              <p className="text-sm text-muted-foreground">
+                {profile.education.institution} • {profile.education.detail}
+              </p>
             </div>
           </div>
         </motion.div>
@@ -98,13 +92,11 @@ export function AboutSection() {
             </div>
             
             <p className="text-muted-foreground leading-relaxed mb-6">
-              Good analog design requires understanding both the physics and the art of tradeoffs. 
-              My approach combines rigorous device-level analysis with practical design intuition, 
-              always validated through measurement and silicon verification.
+              {philosophy.summary}
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {philosophyPrinciples.map((principle, index) => (
+              {philosophy.principles.map((principle, index) => (
                 <motion.div
                   key={principle.label}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -134,7 +126,7 @@ export function AboutSection() {
               
               <div className="relative">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary mb-4">
-                  <domain.icon className="h-6 w-6" />
+                  <domain.icon className="h-6 w-6" aria-hidden="true" />
                 </div>
                 
                 <h3 className="font-semibold text-xl mb-3 text-card-foreground">

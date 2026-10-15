@@ -19,7 +19,6 @@ interface ImageGalleryProps {
 
 export function ImageGallery({ images, projectId }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -79,7 +78,9 @@ export function ImageGallery({ images, projectId }: ImageGalleryProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
+            type="button"
             onClick={() => setSelectedIndex(index)}
+            aria-label={`Open image: ${image.alt}`}
             className="group relative aspect-video bg-secondary/50 rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all"
           >
             <Image
@@ -89,7 +90,6 @@ export function ImageGallery({ images, projectId }: ImageGalleryProps) {
               className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, 33vw"
               loading="lazy"
-              onLoad={() => setIsLoading(false)}
             />
             <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <ZoomIn className="h-6 w-6 text-foreground" />
@@ -112,6 +112,9 @@ export function ImageGallery({ images, projectId }: ImageGalleryProps) {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex items-center justify-center"
             onClick={() => setSelectedIndex(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={images[selectedIndex].alt}
           >
             {/* Close button */}
             <button
@@ -154,7 +157,6 @@ export function ImageGallery({ images, projectId }: ImageGalleryProps) {
                   fill
                   className="object-contain"
                   sizes="90vw"
-                  priority
                 />
               </div>
               {images[selectedIndex].caption && (
