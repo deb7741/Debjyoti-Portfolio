@@ -1,6 +1,6 @@
 # Debjyoti Chowbey — Research Portfolio
 
-Personal research site for Debjyoti Chowbey — live at **https://debjyotiportfolio.vercel.app** — Research Associate at IISc Bangalore, covering analog & mixed-signal IC design, analog computing and hardware security.
+Personal research site for Debjyoti Chowbey — live at **https://debjyoti-chowbey-portfolio.vercel.app/#overview** — Research Associate at IISc Bangalore, covering analog & mixed-signal IC design, analog computing and hardware security.
 
 Built with Next.js 16 (App Router), React 19, Tailwind CSS v4 and Framer Motion. The page is fully static (prerendered at build time).
 
